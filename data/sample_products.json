@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Milka Čokoláda",
+    "price": "27.90",
+    "store": "BILLA",
+    "valid_to": "2026-06-02"
+  },
+  {
+    "name": "Milka Čokoláda",
+    "price": "31.90",
+    "store": "Tesco",
+    "valid_to": "2026-06-04"
+  },
+  {
+    "name": "Máslo",
+    "price": "39.90",
+    "store": "Kaufland",
+    "valid_to": "2026-06-02"
+  }
+]
