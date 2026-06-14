@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 from pathlib import Path
+import unicodedata
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,15 @@ def load_products() -> list[dict]:
 
 
 def normalize_text(text: str) -> str:
-    return text.lower().strip()
+    text = text.lower().strip()
+
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(
+        char for char in text
+        if unicodedata.category(char) != "Mn"
+    )
+
+    return text
 
 
 def search_products(query: str) -> list[dict]:
