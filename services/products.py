@@ -11,6 +11,7 @@ from utils.normalize import normalize_text
 router = Router()
 
 DATA_FILE = Path("data/sample_products.json")
+MAX_RESULTS = 5
 
 
 def load_products() -> list[dict]:
@@ -35,7 +36,8 @@ def search_products(query: str) -> list[dict]:
         if normalized_query in normalized_name or normalized_query in normalized_store:
             results.append(product)
 
-    return sort_products_by_price(results)
+    sorted_results = sort_products_by_price(results)
+    return sorted_results[:MAX_RESULTS]
 
 
 def format_products(products: list[dict]) -> str:
