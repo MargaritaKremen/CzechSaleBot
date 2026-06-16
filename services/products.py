@@ -1,52 +1,64 @@
 import json
-from decimal import Decimal
 from pathlib import Path
-import unicodedata
+
+from aiogram import Router
+from aiogram.filters import Command
+from aiogram.types import Message
+
+from utils.normalize import normalize_text
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-PRODUCTS_FILE = BASE_DIR / "data" / "sample_products.json"
+router = Router()
+
+DATA_FILE = Path("data/sample_products.json")
 
 
 def load_products() -> list[dict]:
-    with open(PRODUCTS_FILE, "r", encoding="utf-8") as file:
-        raw_products = json.load(file)
-
-    products = []
-
-    for product in raw_products:
-        products.append({
-            "name": product["name"],
-            "price": Decimal(product["price"]),
-            "store": product["store"],
-            "valid_to": product["valid_to"],
-        })
-
-    return products
-
-
-def normalize_text(text: str) -> str:
-    text = text.lower().strip()
-
-    text = unicodedata.normalize("NFD", text)
-    text = "".join(
-        char for char in text
-        if unicodedata.category(char) != "Mn"
-    )
-
-    return text
+    with open(DATA_FILE, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 def search_products(query: str) -> list[dict]:
-    query = normalize_text(query)
     products = load_products()
+    normalized_query = normalize_text(query)
 
-    result = []
+    results = []
 
     for product in products:
-        product_name = normalize_text(product["name"])
+        normalized_name = normalize_text(product["name"])
 
-        if query in product_name:
-            result.append(product)
+        if normalized_query in normalized_name:
+            results.append(product)
 
-    return sorted(result, key=lambda item: item["price"])
+    return results
+
+
+def format_products(products: list[dict]) -> str:
+    if not products:
+        return "Нічого не знайдено 😔"
+
+    lines = ["Знайдено товари:\n"]
+
+    for product in products:
+        lines.append(
+            f"🛒 {product['name']}\n"
+            f"🏪 {product['store']}\n"
+            f"💰 {product['price']} Kč\n"
+            f"📅 Дійсно до: {product['valid_to']}"
+        )
+
+    return "\n".join(lines)
+
+
+@router.message(Command("search"))
+async def search_command(message: Message):
+    query = message.text.replace("/search", "").strip()
+
+    if not query:
+        await message.answer("Напиши товар після команди, наприклад: /search cokolada")
+        return
+
+    products = search_products(query)
+    response = format_products(products)
+
+    await message.answer(response)
