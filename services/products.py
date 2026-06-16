@@ -41,17 +41,29 @@ def format_products(products: list[dict]) -> str:
     if not products:
         return "Нічого не знайдено 😔"
 
-    lines = ["Знайдено товари:\n"]
+    cheapest_product = products[0]
+    other_products = products[1:]
 
-    for product in products:
-        lines.append(
-            f"🛒 {product['name']}\n"
-            f"🏪 {product['store']}\n"
-            f"💰 {product['price']} Kč\n"
-            f"📅 Дійсно до: {product['valid_to']}"
-        )
+    lines = [
+        "✅ Найдешевший варіант:\n",
+        f"🛒 {cheapest_product['name']}\n"
+        f"🏪 {cheapest_product['store']}\n"
+        f"💰 {cheapest_product['price']} Kč\n"
+        f"📅 Дійсно до: {cheapest_product['valid_to']}"
+    ]
 
-    return "\n".join(lines)
+    if other_products:
+        lines.append("\nІнші знайдені товари:\n")
+
+        for product in other_products:
+            lines.append(
+                f"🛒 {product['name']}\n"
+                f"🏪 {product['store']}\n"
+                f"💰 {product['price']} Kč\n"
+                f"📅 Дійсно до: {product['valid_to']}"
+            )
+
+    return "\n\n".join(lines)
 
 
 @router.message(Command("search"))
