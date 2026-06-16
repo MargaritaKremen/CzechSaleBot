@@ -30,8 +30,9 @@ def search_products(query: str) -> list[dict]:
 
     for product in products:
         normalized_name = normalize_text(product["name"])
+        normalized_store = normalize_text(product["store"])
 
-        if normalized_query in normalized_name:
+        if normalized_query in normalized_name or normalized_query in normalized_store:
             results.append(product)
 
     return sort_products_by_price(results)
