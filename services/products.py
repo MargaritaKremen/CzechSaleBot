@@ -30,7 +30,7 @@ def search_products(query: str) -> list[dict]:
         if normalized_query in normalized_name:
             results.append(product)
 
-    return results
+    return sorted(results, key=lambda product: product["price"])
 
 
 def format_products(products: list[dict]) -> str:
