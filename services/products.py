@@ -36,11 +36,10 @@ def search_products(query: str) -> list[dict]:
         if normalized_query in normalized_name or normalized_query in normalized_store:
             results.append(product)
 
-    sorted_results = sort_products_by_price(results)
-    return sorted_results[:MAX_RESULTS]
+    return sort_products_by_price(results)
 
 
-def format_products(products: list[dict]) -> str:
+def format_products(products: list[dict], total_count: int) -> str:
     if not products:
         return "Нічого не знайдено 😔"
 
@@ -48,7 +47,7 @@ def format_products(products: list[dict]) -> str:
     other_products = products[1:]
 
     lines = [
-        "✅ Найдешевший варіант:\n",
+        "✅ Найнижча ціна серед знайденого:\n",
         f"🛒 {cheapest_product['name']}\n"
         f"🏪 {cheapest_product['store']}\n"
         f"💰 {cheapest_product['price']} Kč\n"
@@ -65,7 +64,8 @@ def format_products(products: list[dict]) -> str:
                 f"💰 {product['price']} Kč\n"
                 f"📅 Дійсно до: {product['valid_to']}"
             )
-
+    if total_count > len(products):
+        lines.append(f"\nПоказано {len(products)} найдешевших результатів із {total_count} знайдених.")
     return "\n\n".join(lines)
 
 
@@ -77,7 +77,11 @@ async def search_command(message: Message):
         await message.answer("Напиши товар після команди, наприклад: /search cokolada")
         return
 
-    products = search_products(query)
-    response = format_products(products)
+    all_products = search_products(query)
+    visible_products = all_products[:MAX_RESULTS]
+
+    response = format_products(visible_products, total_count=len(all_products))
+
+    await message.answer(response)
 
     await message.answer(response)

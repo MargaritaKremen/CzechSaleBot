@@ -5,7 +5,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
 from bot.code.settings import BOTTOKEN
-from services.products import search_products, format_products
+from services.products import search_products, format_products, MAX_RESULTS
 
 TOKEN = BOTTOKEN
 
@@ -20,8 +20,10 @@ async def search_handler(message: Message) -> None:
         await message.answer("Напиши товар після команди. Наприклад:\n/search milka")
         return
 
-    products = search_products(query)
-    response = format_products(products)
+    all_products = search_products(query)
+    visible_products = all_products[:MAX_RESULTS]
+
+    response = format_products(visible_products, total_count=len(all_products))
 
     await message.answer(response)
 
