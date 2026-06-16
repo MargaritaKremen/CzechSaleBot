@@ -18,6 +18,10 @@ def load_products() -> list[dict]:
         return json.load(file)
 
 
+def sort_products_by_price(products: list[dict]) -> list[dict]:
+    return sorted(products, key=lambda product: product["price"])
+
+
 def search_products(query: str) -> list[dict]:
     products = load_products()
     normalized_query = normalize_text(query)
@@ -30,7 +34,7 @@ def search_products(query: str) -> list[dict]:
         if normalized_query in normalized_name:
             results.append(product)
 
-    return sorted(results, key=lambda product: product["price"])
+    return sort_products_by_price(results)
 
 
 def format_products(products: list[dict]) -> str:
