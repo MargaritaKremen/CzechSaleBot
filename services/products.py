@@ -1,14 +1,7 @@
 import json
 from pathlib import Path
 
-from aiogram import Router
-from aiogram.filters import Command
-from aiogram.types import Message
-
 from utils.normalize import normalize_text
-
-
-router = Router()
 
 DATA_FILE = Path("data/sample_products.json")
 MAX_RESULTS = 5
@@ -67,21 +60,3 @@ def format_products(products: list[dict], total_count: int) -> str:
     if total_count > len(products):
         lines.append(f"\nПоказано {len(products)} найдешевших результатів із {total_count} знайдених.")
     return "\n\n".join(lines)
-
-
-@router.message(Command("search"))
-async def search_command(message: Message):
-    query = message.text.replace("/search", "").strip()
-
-    if not query:
-        await message.answer("Напиши товар після команди, наприклад: /search cokolada")
-        return
-
-    all_products = search_products(query)
-    visible_products = all_products[:MAX_RESULTS]
-
-    response = format_products(visible_products, total_count=len(all_products))
-
-    await message.answer(response)
-
-    await message.answer(response)
