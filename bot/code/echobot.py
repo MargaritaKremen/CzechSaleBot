@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
 from bot.code.settings import BOTTOKEN
@@ -26,6 +26,24 @@ async def search_handler(message: Message) -> None:
     response = format_products(visible_products, total_count=len(all_products))
 
     await message.answer(response)
+
+@dp.message(Command("help"))
+async def help_handler(message: Message) -> None:
+    help_text = (
+        "🛒 CzechSaleBot допомагає шукати акційні товари в супермаркетах.\n\n"
+        "Доступні команди:\n"
+        "/search назва_товару — знайти товар за назвою\n"
+        "/search магазин — знайти товари з конкретного магазину\n"
+        "/help — показати цю довідку\n\n"
+        "Приклади:\n"
+        "/search milka\n"
+        "/search mleko\n"
+        "/search lidl\n"
+        "/search tesco\n\n"
+        "Бот показує найдешевші результати першими."
+    )
+
+    await message.answer(help_text)
 
 async def start_bot() -> None:
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
