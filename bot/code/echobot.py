@@ -10,6 +10,7 @@ from services.products import search_products, format_products, MAX_RESULTS
 TOKEN = BOTTOKEN
 
 dp = Dispatcher()
+user_search_modes = {}
 
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
@@ -77,9 +78,10 @@ async def help_handler(message: Message) -> None:
 async def help_button_handler(message: Message) -> None:
     await help_handler(message)
 
-
 @dp.message(lambda message: message.text == "🔍 Пошук за товаром")
 async def search_by_product_button_handler(message: Message) -> None:
+    user_search_modes[message.from_user.id] = "product"
+
     await message.answer(
         "Напиши назву товару без /search.\n\n"
         "Наприклад:\n"
@@ -87,7 +89,6 @@ async def search_by_product_button_handler(message: Message) -> None:
         "mleko\n"
         "cokolada"
     )
-
 
 @dp.message(lambda message: message.text == "🏪 Пошук в магазині")
 async def search_by_store_button_handler(message: Message) -> None:
@@ -99,6 +100,29 @@ async def search_by_store_button_handler(message: Message) -> None:
         "kaufland"
     )
 
+
+@dp.message()
+async def text_search_handler(message: Message) -> None:
+    user_id = message.from_user.id
+    query = message.text.strip()
+
+    search_mode = user_search_modes.get(user_id)
+
+    if search_mode == "product":
+        all_products = search_products(query)
+        visible_products = all_products[:MAX_RESULTS]
+
+        response = format_products(visible_products, total_count=len(all_products))
+
+        await message.answer(response)
+        return
+
+    await message.answer(
+        "Спочатку обери режим пошуку кнопкою нижче:\n\n"
+        "🔍 Пошук за товаром\n"
+        "🏪 Пошук в магазині",
+        reply_markup=main_keyboard,
+    )
 
 async def start_bot() -> None:
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
