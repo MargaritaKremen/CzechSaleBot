@@ -5,12 +5,20 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 
 from bot.code.settings import BOTTOKEN
-from services.products import search_products, format_products, MAX_RESULTS
+from services.products import (
+    search_products,
+    search_products_by_name_and_store,
+    format_products,
+    MAX_RESULTS,
+)
 
 TOKEN = BOTTOKEN
 
 dp = Dispatcher()
+
 user_search_modes = {}
+user_selected_stores = {}
+
 
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
@@ -92,6 +100,9 @@ async def search_by_product_button_handler(message: Message) -> None:
 
 @dp.message(lambda message: message.text == "🏪 Пошук в магазині")
 async def search_by_store_button_handler(message: Message) -> None:
+    user_search_modes[message.from_user.id] = "waiting_for_store"
+    user_selected_stores.pop(message.from_user.id, None)
+
     await message.answer(
         "Напиши назву магазину.\n\n"
         "Наприклад:\n"
@@ -117,12 +128,41 @@ async def text_search_handler(message: Message) -> None:
         await message.answer(response)
         return
 
+    if search_mode == "waiting_for_store":
+        user_selected_stores[user_id] = query
+        user_search_modes[user_id] = "waiting_for_product_in_store"
+
+        await message.answer(
+            f"Добре, шукаємо в магазині: {query}\n\n"
+            "Тепер напиши, який товар шукати.\n\n"
+            "Наприклад:\n"
+            "milka\n"
+            "mleko\n"
+            "cokolada"
+        )
+        return
+
+    if search_mode == "waiting_for_product_in_store":
+        store_query = user_selected_stores.get(user_id)
+
+        all_products = search_products_by_name_and_store(
+            product_query=query,
+            store_query=store_query,
+        )
+
+        visible_products = all_products[:MAX_RESULTS]
+        response = format_products(visible_products, total_count=len(all_products))
+
+        await message.answer(response)
+        return
+
     await message.answer(
         "Спочатку обери режим пошуку кнопкою нижче:\n\n"
         "🔍 Пошук за товаром\n"
         "🏪 Пошук в магазині",
         reply_markup=main_keyboard,
     )
+
 
 async def start_bot() -> None:
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))

@@ -31,6 +31,26 @@ def search_products(query: str) -> list[dict]:
 
     return sort_products_by_price(results)
 
+def search_products_by_name_and_store(product_query: str, store_query: str) -> list[dict]:
+    products = load_products()
+
+    normalized_product_query = normalize_text(product_query)
+    normalized_store_query = normalize_text(store_query)
+
+    results = []
+
+    for product in products:
+        normalized_name = normalize_text(product["name"])
+        normalized_store = normalize_text(product["store"])
+
+        if (
+            normalized_product_query in normalized_name
+            and normalized_store_query in normalized_store
+        ):
+            results.append(product)
+
+    return sort_products_by_price(results)
+
 
 def format_products(products: list[dict], total_count: int) -> str:
     if not products:
