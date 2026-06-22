@@ -125,7 +125,10 @@ async def text_search_handler(message: Message) -> None:
 
         response = format_products(visible_products, total_count=len(all_products))
 
-        await message.answer(response)
+        user_search_modes.pop(user_id, None)        # clearing the status
+        user_selected_stores.pop(user_id, None)
+
+        await message.answer(response, reply_markup=main_keyboard)
         return
 
     if search_mode == "waiting_for_store":
@@ -153,7 +156,10 @@ async def text_search_handler(message: Message) -> None:
         visible_products = all_products[:MAX_RESULTS]
         response = format_products(visible_products, total_count=len(all_products))
 
-        await message.answer(response)
+        user_search_modes.pop(user_id, None)
+        user_selected_stores.pop(user_id, None)
+
+        await message.answer(response, reply_markup=main_keyboard)
         return
 
     await message.answer(
