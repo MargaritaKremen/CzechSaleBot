@@ -25,6 +25,7 @@ main_keyboard = ReplyKeyboardMarkup(
         [KeyboardButton(text="🔍 Пошук за товаром")],
         [KeyboardButton(text="🏪 Пошук в магазині")],
         [KeyboardButton(text="ℹ️ Допомога")],
+        [KeyboardButton(text="↩️ Скасувати")],
     ],
     resize_keyboard=True
 )
@@ -85,6 +86,19 @@ async def help_handler(message: Message) -> None:
 @dp.message(lambda message: message.text == "ℹ️ Допомога")
 async def help_button_handler(message: Message) -> None:
     await help_handler(message)
+
+
+@dp.message(lambda message: message.text == "↩️ Скасувати")
+async def cancel_handler(message: Message) -> None:
+    user_id = message.from_user.id
+
+    user_search_modes.pop(user_id, None)
+    user_selected_stores.pop(user_id, None)
+
+    await message.answer(
+        "Дію скасовано. Обери новий режим пошуку.",
+        reply_markup=main_keyboard,
+    )
 
 @dp.message(lambda message: message.text == "🔍 Пошук за товаром")
 async def search_by_product_button_handler(message: Message) -> None:
