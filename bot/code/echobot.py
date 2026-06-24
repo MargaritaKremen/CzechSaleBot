@@ -9,6 +9,7 @@ from services.products import (
     search_products,
     search_products_by_name_and_store,
     get_available_stores,
+    find_store_by_name,
     format_products,
     MAX_RESULTS,
 )
@@ -57,11 +58,9 @@ async def search_handler(message: Message) -> None:
         return
 
     all_products = search_products(query)
-    visible_products = all_products[:MAX_RESULTS]
 
-    response = format_products(visible_products, total_count=len(all_products))
+    await send_search_results(message, all_products)
 
-    await message.answer(response)
 
 @dp.message(Command("help"))
 async def help_handler(message: Message) -> None:
@@ -166,6 +165,13 @@ async def search_by_store_button_handler(message: Message) -> None:
     )
 
 
+async def send_search_results(message: Message, products: list[dict]) -> None:      # щоб не дублювати код
+    visible_products = products[:MAX_RESULTS]
+    response = format_products(visible_products, total_count=len(products))
+
+    await message.answer(response, reply_markup=main_keyboard)
+
+
 @dp.message()
 async def text_search_handler(message: Message) -> None:
     user_id = message.from_user.id
@@ -175,22 +181,34 @@ async def text_search_handler(message: Message) -> None:
 
     if search_mode == "product":
         all_products = search_products(query)
-        visible_products = all_products[:MAX_RESULTS]
 
-        response = format_products(visible_products, total_count=len(all_products))
-
-        user_search_modes.pop(user_id, None)        # clearing the status
+        user_search_modes.pop(user_id, None)
         user_selected_stores.pop(user_id, None)
 
-        await message.answer(response, reply_markup=main_keyboard)
+        await send_search_results(message, all_products)
         return
 
     if search_mode == "waiting_for_store":
-        user_selected_stores[user_id] = query
+        store = find_store_by_name(query)
+
+        if store is None:
+            stores = get_available_stores()
+            stores_text = "\n".join(f"🏪 {store}" for store in stores)
+
+            await message.answer(
+                "Такого магазину поки немає в базі 😔\n\n"
+                "Доступні магазини:\n\n"
+                f"{stores_text}\n\n"
+                "Напиши назву магазину ще раз або натисни ↩️ Скасувати.",
+                reply_markup=main_keyboard,
+            )
+            return
+
+        user_selected_stores[user_id] = store
         user_search_modes[user_id] = "waiting_for_product_in_store"
 
         await message.answer(
-            f"Добре, шукаємо в магазині: {query}\n\n"
+            f"Добре, шукаємо в магазині: {store}\n\n"
             "Тепер напиши, який товар шукати.\n\n"
             "Наприклад:\n"
             "milka\n"
@@ -207,13 +225,10 @@ async def text_search_handler(message: Message) -> None:
             store_query=store_query,
         )
 
-        visible_products = all_products[:MAX_RESULTS]
-        response = format_products(visible_products, total_count=len(all_products))
-
         user_search_modes.pop(user_id, None)
         user_selected_stores.pop(user_id, None)
 
-        await message.answer(response, reply_markup=main_keyboard)
+        await send_search_results(message, all_products)
         return
 
     await message.answer(

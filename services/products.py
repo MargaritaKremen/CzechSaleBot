@@ -23,6 +23,18 @@ def get_available_stores() -> list[str]:
     return sorted(stores)
 
 
+def find_store_by_name(store_query: str) -> str | None:         # Перевірка чи існує введена назва магазину серед доступних
+    normalized_store_query = normalize_text(store_query)
+
+    for store in get_available_stores():
+        normalized_store = normalize_text(store)
+
+        if normalized_store_query == normalized_store:
+            return store
+
+    return None
+
+
 def sort_products_by_price(products: list[dict]) -> list[dict]:
     return sorted(products, key=lambda product: product["price"])
 
