@@ -37,10 +37,10 @@ async def start_handler(message: Message) -> None:
         "Привіт! 🛒\n\n"
         "Я CzechSaleBot — допомагаю шукати акційні товари "
         "в чеських супермаркетах.\n\n"
-        "Обери, як ти хочеш шукати:\n\n"
+        "Обери режим пошуку:\n\n"
         "🔍 Пошук за товаром — знайти товар у всіх магазинах\n"
         "🏪 Пошук в магазині — спочатку обрати магазин, потім товар\n\n"
-        "Скористайся кнопками нижче."
+        "Якщо передумаєш — натисни ↩️ Скасувати."
     )
 
     await message.answer(start_text, reply_markup=main_keyboard)
@@ -64,10 +64,11 @@ async def search_handler(message: Message) -> None:
 @dp.message(Command("help"))
 async def help_handler(message: Message) -> None:
     help_text = (
-        "🛒 CzechSaleBot допомагає шукати акційні товари в супермаркетах.\n\n"
+        "🛒 CzechSaleBot допомагає шукати акційні товари в чеських супермаркетах.\n\n"
         "Як користуватися:\n\n"
         "🔍 Пошук за товаром\n"
-        "Натисни кнопку і напиши назву товару, наприклад:\n"
+        "Натисни кнопку і напиши назву товару.\n"
+        "Наприклад:\n"
         "milka\n"
         "mleko\n"
         "cokolada\n\n"
@@ -76,12 +77,12 @@ async def help_handler(message: Message) -> None:
         "Наприклад:\n"
         "lidl → milka\n"
         "tesco → mleko\n\n"
-        "Поки що також працює команда:\n"
-        "/search milka\n\n"
+        "↩️ Скасувати\n"
+        "Скидає поточну дію і повертає до меню.\n\n"
         "Бот показує найдешевші результати першими."
     )
 
-    await message.answer(help_text)
+    await message.answer(help_text, reply_markup=main_keyboard)
 
 @dp.message(lambda message: message.text == "ℹ️ Допомога")
 async def help_button_handler(message: Message) -> None:
