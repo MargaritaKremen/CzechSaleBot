@@ -12,6 +12,17 @@ def load_products() -> list[dict]:
         return json.load(file)
 
 
+def get_available_stores() -> list[str]:
+    products = load_products()
+
+    stores = set()
+
+    for product in products:
+        stores.add(product["store"])
+
+    return sorted(stores)
+
+
 def sort_products_by_price(products: list[dict]) -> list[dict]:
     return sorted(products, key=lambda product: product["price"])
 

@@ -8,6 +8,7 @@ from bot.code.settings import BOTTOKEN
 from services.products import (
     search_products,
     search_products_by_name_and_store,
+    get_available_stores,
     format_products,
     MAX_RESULTS,
 )
@@ -25,6 +26,7 @@ main_keyboard = ReplyKeyboardMarkup(
         [KeyboardButton(text="🔍 Пошук за товаром")],
         [KeyboardButton(text="🏪 Пошук в магазині")],
         [KeyboardButton(text="ℹ️ Допомога")],
+        [KeyboardButton(text="📃 Доступні магазини")],
         [KeyboardButton(text="↩️ Скасувати")],
     ],
     resize_keyboard=True
@@ -79,6 +81,9 @@ async def help_handler(message: Message) -> None:
         "tesco → mleko\n\n"
         "↩️ Скасувати\n"
         "Скидає поточну дію і повертає до меню.\n\n"
+        "Команди:\n"
+        "/stores — показати доступні магазини\n"
+        "/help — показати довідку\n\n"
         "Бот показує найдешевші результати першими."
     )
 
@@ -87,6 +92,40 @@ async def help_handler(message: Message) -> None:
 @dp.message(lambda message: message.text == "ℹ️ Допомога")
 async def help_button_handler(message: Message) -> None:
     await help_handler(message)
+
+
+@dp.message(Command("stores"))
+async def stores_handler(message: Message) -> None:
+    stores = get_available_stores()
+
+    if not stores:
+        await message.answer("Список магазинів поки порожній 😔")
+        return
+
+    stores_text = "\n".join(f"🏪 {store}" for store in stores)
+
+    await message.answer(
+        "Доступні магазини:\n\n"
+        f"{stores_text}",
+        reply_markup=main_keyboard,
+    )
+
+
+@dp.message(lambda message: message.text == "📃 Доступні магазини")
+async def stores_button_handler(message: Message) -> None:
+    stores = get_available_stores()
+
+    if not stores:
+        await message.answer("Список магазинів поки порожній 😔")
+        return
+
+    stores_text = "\n".join(f"🏪 {store}" for store in stores)
+
+    await message.answer(
+        "Доступні магазини:\n\n"
+        f"{stores_text}",
+        reply_markup=main_keyboard,
+    )
 
 
 @dp.message(lambda message: message.text == "↩️ Скасувати")
