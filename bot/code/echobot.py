@@ -97,12 +97,14 @@ async def help_button_handler(message: Message) -> None:
     await help_handler(message)
 
 
-@dp.message(Command("stores"))
-async def stores_handler(message: Message) -> None:
+async def send_available_stores(message: Message) -> None:
     stores = get_available_stores()
 
     if not stores:
-        await message.answer("Список магазинів поки порожній 😔")
+        await message.answer(
+            "Список магазинів поки порожній 😔",
+            reply_markup=main_keyboard,
+        )
         return
 
     stores_text = "\n".join(f"🏪 {store}" for store in stores)
@@ -112,23 +114,16 @@ async def stores_handler(message: Message) -> None:
         f"{stores_text}",
         reply_markup=main_keyboard,
     )
+
+
+@dp.message(Command("stores"))
+async def stores_handler(message: Message) -> None:
+    await send_available_stores(message)
 
 
 @dp.message(lambda message: message.text == "📃 Доступні магазини")
 async def stores_button_handler(message: Message) -> None:
-    stores = get_available_stores()
-
-    if not stores:
-        await message.answer("Список магазинів поки порожній 😔")
-        return
-
-    stores_text = "\n".join(f"🏪 {store}" for store in stores)
-
-    await message.answer(
-        "Доступні магазини:\n\n"
-        f"{stores_text}",
-        reply_markup=main_keyboard,
-    )
+    await send_available_stores(message)
 
 
 @dp.message(lambda message: message.text == "↩️ Скасувати")
