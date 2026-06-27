@@ -66,8 +66,7 @@ async def search_handler(message: Message) -> None:
     )
 
 
-@dp.message(Command("help"))
-async def help_handler(message: Message) -> None:
+async def send_help(message: Message) -> None:
     help_text = (
         "🛒 CzechSaleBot допомагає шукати акційні товари в чеських супермаркетах.\n\n"
         "Як користуватися:\n\n"
@@ -82,6 +81,8 @@ async def help_handler(message: Message) -> None:
         "Наприклад:\n"
         "lidl → milka\n"
         "tesco → mleko\n\n"
+        "📃 Доступні магазини\n"
+        "Показує список магазинів, які є в базі.\n\n"
         "↩️ Скасувати\n"
         "Скидає поточну дію і повертає до меню.\n\n"
         "Команди:\n"
@@ -92,9 +93,13 @@ async def help_handler(message: Message) -> None:
 
     await message.answer(help_text, reply_markup=main_keyboard)
 
+@dp.message(Command("help"))
+async def help_handler(message: Message) -> None:
+    await send_help(message)
+
 @dp.message(lambda message: message.text == "ℹ️ Допомога")
 async def help_button_handler(message: Message) -> None:
-    await help_handler(message)
+    await send_help(message)
 
 
 async def send_available_stores(message: Message) -> None:
