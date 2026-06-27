@@ -59,7 +59,11 @@ async def search_handler(message: Message) -> None:
 
     all_products = search_products(query)
 
-    await send_search_results(message, all_products)
+    await send_search_results(
+        message,
+        all_products,
+        not_found_message=f"Нічого не знайдено за запитом: {query} 😔",
+    )
 
 
 @dp.message(Command("help"))
@@ -165,7 +169,15 @@ async def search_by_store_button_handler(message: Message) -> None:
     )
 
 
-async def send_search_results(message: Message, products: list[dict]) -> None:      # щоб не дублювати код
+async def send_search_results(
+    message: Message,
+    products: list[dict],
+    not_found_message: str = "Нічого не знайдено 😔",
+) -> None:
+    if not products:
+        await message.answer(not_found_message, reply_markup=main_keyboard)
+        return
+
     visible_products = products[:MAX_RESULTS]
     response = format_products(visible_products, total_count=len(products))
 
@@ -185,7 +197,11 @@ async def text_search_handler(message: Message) -> None:
         user_search_modes.pop(user_id, None)
         user_selected_stores.pop(user_id, None)
 
-        await send_search_results(message, all_products)
+        await send_search_results(
+            message,
+            all_products,
+            not_found_message=f"Нічого не знайдено за запитом: {query} 😔",
+        )
         return
 
     if search_mode == "waiting_for_store":
@@ -228,7 +244,11 @@ async def text_search_handler(message: Message) -> None:
         user_search_modes.pop(user_id, None)
         user_selected_stores.pop(user_id, None)
 
-        await send_search_results(message, all_products)
+        await send_search_results(
+            message,
+            all_products,
+            not_found_message=f"У магазині {store_query} не знайдено товар: {query} 😔",
+        )
         return
 
     await message.answer(
