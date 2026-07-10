@@ -21,14 +21,24 @@ dp = Dispatcher()
 user_search_modes = {}
 user_selected_stores = {}
 
+SEARCH_PRODUCT_BUTTON = "🔍 Пошук за товаром"
+SEARCH_STORE_BUTTON = "🏪 Пошук в магазині"
+HELP_BUTTON = "ℹ️ Допомога"
+STORES_BUTTON = "📃 Доступні магазини"
+CANCEL_BUTTON = "↩️ Скасувати"
+
+MODE_PRODUCT = "product"
+MODE_WAITING_FOR_STORE = "waiting_for_store"
+MODE_WAITING_FOR_PRODUCT_IN_STORE = "waiting_for_product_in_store"
+
 
 main_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="🔍 Пошук за товаром")],
-        [KeyboardButton(text="🏪 Пошук в магазині")],
-        [KeyboardButton(text="ℹ️ Допомога")],
-        [KeyboardButton(text="📃 Доступні магазини")],
-        [KeyboardButton(text="↩️ Скасувати")],
+        [KeyboardButton(text=SEARCH_PRODUCT_BUTTON)],
+        [KeyboardButton(text=SEARCH_STORE_BUTTON)],
+        [KeyboardButton(text=HELP_BUTTON)],
+        [KeyboardButton(text=STORES_BUTTON)],
+        [KeyboardButton(text=CANCEL_BUTTON)],
     ],
     resize_keyboard=True
 )
@@ -97,7 +107,7 @@ async def send_help(message: Message) -> None:
 async def help_handler(message: Message) -> None:
     await send_help(message)
 
-@dp.message(lambda message: message.text == "ℹ️ Допомога")
+@dp.message(lambda message: message.text == HELP_BUTTON)
 async def help_button_handler(message: Message) -> None:
     await send_help(message)
 
@@ -126,12 +136,12 @@ async def stores_handler(message: Message) -> None:
     await send_available_stores(message)
 
 
-@dp.message(lambda message: message.text == "📃 Доступні магазини")
+@dp.message(lambda message: message.text == STORES_BUTTON)     # Доступні магазини
 async def stores_button_handler(message: Message) -> None:
     await send_available_stores(message)
 
 
-@dp.message(lambda message: message.text == "↩️ Скасувати")
+@dp.message(lambda message: message.text == CANCEL_BUTTON)
 async def cancel_handler(message: Message) -> None:
     user_id = message.from_user.id
 
@@ -143,9 +153,9 @@ async def cancel_handler(message: Message) -> None:
         reply_markup=main_keyboard,
     )
 
-@dp.message(lambda message: message.text == "🔍 Пошук за товаром")
+@dp.message(lambda message: message.text == SEARCH_PRODUCT_BUTTON)       # Пошук за товаром
 async def search_by_product_button_handler(message: Message) -> None:
-    user_search_modes[message.from_user.id] = "product"
+    user_search_modes[message.from_user.id] = MODE_PRODUCT
 
     await message.answer(
         "Напиши назву товару без /search.\n\n"
@@ -155,9 +165,9 @@ async def search_by_product_button_handler(message: Message) -> None:
         "cokolada"
     )
 
-@dp.message(lambda message: message.text == "🏪 Пошук в магазині")
+@dp.message(lambda message: message.text == SEARCH_STORE_BUTTON)         # 🏪 Пошук в магазині
 async def search_by_store_button_handler(message: Message) -> None:
-    user_search_modes[message.from_user.id] = "waiting_for_store"
+    user_search_modes[message.from_user.id] = MODE_WAITING_FOR_STORE
     user_selected_stores.pop(message.from_user.id, None)
 
     await message.answer(
@@ -191,7 +201,7 @@ async def text_search_handler(message: Message) -> None:
 
     search_mode = user_search_modes.get(user_id)
 
-    if search_mode == "product":
+    if search_mode == MODE_PRODUCT:
         all_products = search_products(query)
 
         user_search_modes.pop(user_id, None)
@@ -204,7 +214,7 @@ async def text_search_handler(message: Message) -> None:
         )
         return
 
-    if search_mode == "waiting_for_store":
+    if search_mode == MODE_WAITING_FOR_STORE:
         store = find_store_by_name(query)
 
         if store is None:
@@ -221,7 +231,7 @@ async def text_search_handler(message: Message) -> None:
             return
 
         user_selected_stores[user_id] = store
-        user_search_modes[user_id] = "waiting_for_product_in_store"
+        user_search_modes[user_id] = MODE_WAITING_FOR_PRODUCT_IN_STORE
 
         await message.answer(
             f"Добре, шукаємо в магазині: {store}\n\n"
@@ -233,7 +243,7 @@ async def text_search_handler(message: Message) -> None:
         )
         return
 
-    if search_mode == "waiting_for_product_in_store":
+    if search_mode == MODE_WAITING_FOR_PRODUCT_IN_STORE:
         store_query = user_selected_stores.get(user_id)
 
         all_products = search_products_by_name_and_store(
