@@ -12,6 +12,12 @@ def load_products() -> list[dict]:
         return json.load(file)
 
 
+def split_product_queries(text: str) -> list[str]:                  # This function breaks the text down into a list of products
+    items = text.replace("\n", ",").split(",")
+
+    return [item.strip() for item in items if item.strip()]
+
+
 def get_available_stores() -> list[str]:
     products = load_products()
 
