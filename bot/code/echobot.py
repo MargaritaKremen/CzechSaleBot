@@ -220,6 +220,33 @@ async def send_multiple_product_results(message: Message, queries: list[str]) ->
     await message.answer("\n\n--------------------\n\n".join(responses), reply_markup=main_keyboard)
 
 
+async def send_multiple_product_results_in_store(                                           # This helper function returns the result for the store
+    message: Message,
+    queries: list[str],
+    store_query: str,
+) -> None:
+    responses = []
+
+    for query in queries:
+        products = search_products_by_name_and_store(
+            product_query=query,
+            store_query=store_query,
+        )
+        visible_products = products[:MAX_RESULTS]
+
+        if not products:
+            responses.append(f"🔎 {query}\nУ магазині {store_query} нічого не знайдено 😔")
+            continue
+
+        response = format_products(visible_products, total_count=len(products))
+        responses.append(f"🔎 {query} у магазині {store_query}\n\n{response}")
+
+    await message.answer(
+        "\n\n--------------------\n\n".join(responses),
+        reply_markup=main_keyboard,
+    )
+
+
 @dp.message()
 async def text_search_handler(message: Message) -> None:
     user_id = message.from_user.id
@@ -290,18 +317,40 @@ async def text_search_handler(message: Message) -> None:
     if search_mode == MODE_WAITING_FOR_PRODUCT_IN_STORE:
         store_query = user_selected_stores.get(user_id)
 
-        all_products = search_products_by_name_and_store(
-            product_query=query,
-            store_query=store_query,
-        )
+        queries = split_product_queries(query)
+        queries = [item for item in queries if item not in MENU_BUTTONS]
 
         user_search_modes.pop(user_id, None)
         user_selected_stores.pop(user_id, None)
 
-        await send_search_results(
+        if not queries:
+            await message.answer(
+                "Напиши назву товару.\n\n"
+                "Наприклад:\n"
+                "milka\n"
+                "mleko\n"
+                "cokolada",
+                reply_markup=main_keyboard,
+            )
+            return
+
+        if len(queries) == 1:
+            all_products = search_products_by_name_and_store(
+                product_query=queries[0],
+                store_query=store_query,
+            )
+
+            await send_search_results(
+                message,
+                all_products,
+                not_found_message=f"У магазині {store_query} не знайдено товар: {queries[0]} 😔",
+            )
+            return
+
+        await send_multiple_product_results_in_store(
             message,
-            all_products,
-            not_found_message=f"У магазині {store_query} не знайдено товар: {query} 😔",
+            queries,
+            store_query=store_query,
         )
         return
 
