@@ -73,7 +73,7 @@ async def search_handler(message: Message) -> None:
     query = message.text.replace("/search", "", 1).strip()
 
     if not query:
-        await message.answer("Напиши товар після команди. Наприклад:\n/search milka")
+        await message.answer("Напиши товар після команди. Наприклад:\nmilka")
         return
 
     all_products = search_products(query)
@@ -91,6 +91,7 @@ async def send_help(message: Message) -> None:
         "Як користуватися:\n\n"
         "🔍 Пошук за товаром\n"
         "Натисни кнопку і напиши назву товару.\n"
+        "Можна вводити кілька товарів через кому або з нового рядка.\n\n"
         "Наприклад:\n"
         "milka\n"
         "mleko\n"
@@ -99,7 +100,7 @@ async def send_help(message: Message) -> None:
         "Натисни кнопку, напиши магазин, а потім товар.\n"
         "Наприклад:\n"
         "lidl → milka\n"
-        "tesco → mleko\n\n"
+        "tesco → mleko, cokolada\n\n"
         "📃 Доступні магазини\n"
         "Показує список магазинів, які є в базі.\n\n"
         "↩️ Скасувати\n"
@@ -167,11 +168,8 @@ async def search_by_product_button_handler(message: Message) -> None:
     user_search_modes[message.from_user.id] = MODE_PRODUCT
 
     await message.answer(
-        "Напиши назву товару без /search.\n\n"
-        "Наприклад:\n"
-        "milka\n"
-        "mleko\n"
-        "cokolada"
+        "Напиши назву товару\n"
+        "або кілька товарів через кому чи з нового рядка."
     )
 
 @dp.message(lambda message: message.text == SEARCH_STORE_BUTTON)         # 🏪 Пошук в магазині
@@ -181,10 +179,6 @@ async def search_by_store_button_handler(message: Message) -> None:
 
     await message.answer(
         "Напиши назву магазину.\n\n"
-        "Наприклад:\n"
-        "lidl\n"
-        "tesco\n"
-        "kaufland"
     )
 
 
@@ -263,11 +257,7 @@ async def text_search_handler(message: Message) -> None:
 
         if not queries:
             await message.answer(
-                "Напиши назву товару.\n\n"
-                "Наприклад:\n"
-                "milka\n"
-                "mleko\n"
-                "cokolada",
+                "Напиши назву товару.\n\n" ,
                 reply_markup=main_keyboard,
             )
             return
@@ -306,11 +296,8 @@ async def text_search_handler(message: Message) -> None:
 
         await message.answer(
             f"Добре, шукаємо в магазині: {store}\n\n"
-            "Тепер напиши, який товар шукати.\n\n"
-            "Наприклад:\n"
-            "milka\n"
-            "mleko\n"
-            "cokolada"
+            "Напиши назву товару \n"
+            "або кілька товарів через кому чи з нового рядка."
         )
         return
 
@@ -325,11 +312,8 @@ async def text_search_handler(message: Message) -> None:
 
         if not queries:
             await message.answer(
-                "Напиши назву товару.\n\n"
-                "Наприклад:\n"
-                "milka\n"
-                "mleko\n"
-                "cokolada",
+                "Напиши назву товару\n"
+                "або кілька товарів через кому чи з нового рядка.",
                 reply_markup=main_keyboard,
             )
             return
