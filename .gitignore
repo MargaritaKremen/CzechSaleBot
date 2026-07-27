@@ -1,3 +1,6 @@
+data/debug_page.html
+data/parsed_products.json
+.venv/Scripts/
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,windows,linux,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,windows,linux,venv
 
@@ -311,7 +314,6 @@ pyrightconfig.json
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
 
