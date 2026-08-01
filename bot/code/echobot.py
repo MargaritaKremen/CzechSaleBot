@@ -194,7 +194,12 @@ async def send_search_results(
     visible_products = products[:MAX_RESULTS]
     response = format_products(visible_products, total_count=len(products))
 
-    await message.answer(response, reply_markup=main_keyboard)
+    await message.answer(
+        response,
+        reply_markup=main_keyboard,
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
 
 
 async def send_multiple_product_results(message: Message, queries: list[str]) -> None:      # This helper function returns the result in blocks
@@ -211,7 +216,12 @@ async def send_multiple_product_results(message: Message, queries: list[str]) ->
         response = format_products(visible_products, total_count=len(products))
         responses.append(f"🔎 {query}\n\n{response}")
 
-    await message.answer("\n\n--------------------\n\n".join(responses), reply_markup=main_keyboard)
+    await message.answer(
+        "\n\n--------------------\n\n".join(responses),
+        reply_markup=main_keyboard,
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
 
 
 async def send_multiple_product_results_in_store(                                           # This helper function returns the result for the store
@@ -238,6 +248,8 @@ async def send_multiple_product_results_in_store(                               
     await message.answer(
         "\n\n--------------------\n\n".join(responses),
         reply_markup=main_keyboard,
+        parse_mode="HTML",
+        disable_web_page_preview=True,
     )
 
 

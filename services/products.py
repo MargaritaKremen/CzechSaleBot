@@ -45,7 +45,10 @@ def find_store_by_name(store_query: str) -> str | None:         # Перевір
 
 
 def sort_products_by_price(products: list[dict]) -> list[dict]:
-    return sorted(products, key=lambda product: product["price"])
+    return sorted(
+        products,
+        key=lambda product: float(str(product["price"]).replace(",", "."))
+    )
 
 
 def search_products(query: str) -> list[dict]:
@@ -97,6 +100,7 @@ def format_products(products: list[dict], total_count: int) -> str:
         f"🏪 {cheapest_product['store']}\n"
         f"💰 {cheapest_product['price']} Kč\n"
         f"📅 Дійсно до: {cheapest_product['valid_to']}"
+        f"🌐 <a href=\"{cheapest_product['url']}\">Сайт</a>"
     ]
 
     if other_products:
@@ -108,6 +112,7 @@ def format_products(products: list[dict], total_count: int) -> str:
                 f"🏪 {product['store']}\n"
                 f"💰 {product['price']} Kč\n"
                 f"📅 Дійсно до: {product['valid_to']}"
+                f"🌐 <a href=\"{product['url']}\">Сайт</a>"
             )
     if total_count > len(products):
         lines.append(f"\nПоказано {len(products)} найдешевших результатів із {total_count} знайдених.")

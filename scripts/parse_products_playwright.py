@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 from bs4 import BeautifulSoup
 import json
 import time
+from urllib.parse import urljoin
 from pathlib import Path
 
 
@@ -99,11 +100,17 @@ def extract_products(html: str) -> list[dict]:
         if not name_element or not price_element or not store_image:
             continue
 
+        product_url = urljoin(
+            "https://www.akcniletak.cz",
+            card.get("href", "")
+        )
+
         product = {
             "name": name_element.get_text(strip=True),
             "store": store_image.get("alt", "").strip(),
             "price": price_element.get_text(strip=True).replace(" Kč", "").replace(",", "."),
             "valid_to": date_element.get_text(strip=True) if date_element else "",
+            "url": product_url,
         }
 
         products.append(product)
@@ -142,8 +149,8 @@ def main() -> None:
     # for product in all_products[:10]:
     #     print(product)
 
-    save_products_to_json(all_products, "data/parsed_products.json")
-    # print("Saved products to data/parsed_products.json")
+    save_products_to_json(all_products, "data/products.json")
+    # print("Saved products to data/products.json")
 
 
 if __name__ == "__main__":
