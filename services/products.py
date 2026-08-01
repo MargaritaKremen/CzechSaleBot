@@ -3,12 +3,15 @@ from pathlib import Path
 
 from utils.normalize import normalize_text
 
-DATA_FILE = Path("data/sample_products.json")
+PRODUCTS_FILE = Path("data/products.json")
+SAMPLE_PRODUCTS_FILE = Path("data/sample_products.json")
 MAX_RESULTS = 5
 
 
 def load_products() -> list[dict]:
-    with open(DATA_FILE, "r", encoding="utf-8") as file:
+    data_file = PRODUCTS_FILE if PRODUCTS_FILE.exists() else SAMPLE_PRODUCTS_FILE
+
+    with open(data_file, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
