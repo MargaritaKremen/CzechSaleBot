@@ -1,13 +1,14 @@
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
-from pathlib import Path
 from bs4 import BeautifulSoup
 import json
+import time
 from pathlib import Path
 
 
 BASE_URL = "https://www.akcniletak.cz"
 OFFERS_PATH = "/nejlepe-hodnocene-nabidky"
 MAX_PAGES = 3
+DELAY_BETWEEN_PAGES_SECONDS = 2
 
 
 def build_offers_page_url(page_number: int) -> str:
@@ -132,6 +133,9 @@ def main() -> None:
         print(f"Extracted products from page {page_number}: {len(products)}")
 
         all_products.extend(products)
+
+        if page_number < MAX_PAGES:
+            time.sleep(DELAY_BETWEEN_PAGES_SECONDS)
 
     print(f"\nTotal extracted products: {len(all_products)}")
 
