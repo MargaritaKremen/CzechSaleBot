@@ -115,10 +115,18 @@ async def send_help(message: Message) -> None:
 
 @dp.message(Command("help"))
 async def help_handler(message: Message) -> None:
+    user_id = message.from_user.id                  # Скидаю стан попередніх пошуків
+
+    user_search_modes.pop(user_id, None)            # Скидаю стан попередніх пошуків
+    user_selected_stores.pop(user_id, None)         # Скидаю стан попередніх пошуків
     await send_help(message)
 
 @dp.message(lambda message: message.text == HELP_BUTTON)
 async def help_button_handler(message: Message) -> None:
+    user_id = message.from_user.id
+
+    user_search_modes.pop(user_id, None)
+    user_selected_stores.pop(user_id, None)
     await send_help(message)
 
 
@@ -143,11 +151,21 @@ async def send_available_stores(message: Message) -> None:
 
 @dp.message(Command("stores"))
 async def stores_handler(message: Message) -> None:
+    user_id = message.from_user.id
+
+    user_search_modes.pop(user_id, None)
+    user_selected_stores.pop(user_id, None)
+
     await send_available_stores(message)
 
 
-@dp.message(lambda message: message.text == STORES_BUTTON)     # Доступні магазини
+@dp.message(lambda message: message.text == STORES_BUTTON)
 async def stores_button_handler(message: Message) -> None:
+    user_id = message.from_user.id
+
+    user_search_modes.pop(user_id, None)
+    user_selected_stores.pop(user_id, None)
+
     await send_available_stores(message)
 
 
@@ -264,7 +282,6 @@ async def text_search_handler(message: Message) -> None:
         queries = split_product_queries(query)
         queries = [item for item in queries if item not in MENU_BUTTONS]     # запобігаю попаданню назви кнопки в продукти, які шукають
 
-        user_search_modes.pop(user_id, None)
         user_selected_stores.pop(user_id, None)
 
         if not queries:
@@ -318,9 +335,6 @@ async def text_search_handler(message: Message) -> None:
 
         queries = split_product_queries(query)
         queries = [item for item in queries if item not in MENU_BUTTONS]
-
-        user_search_modes.pop(user_id, None)
-        user_selected_stores.pop(user_id, None)
 
         if not queries:
             await message.answer(
