@@ -87,6 +87,21 @@ def search_products_by_name_and_store(product_query: str, store_query: str) -> l
     return sort_products_by_price(results)
 
 
+def format_product(product: dict) -> str:
+    lines = [
+        f"🛒 {product['name']}",
+        f"🏪 {product['store']}",
+        f"💰 {product['price']} Kč",
+        f"📅 Дійсно до: {product['valid_to']}",
+    ]
+
+    product_url = product.get("url")
+
+    if product_url:
+        lines.append(f'🌐 <a href="{product_url}">Сайт</a>')
+
+    return "\n".join(lines)
+
 def format_products(products: list[dict], total_count: int) -> str:
     if not products:
         return "Нічого не знайдено 😔"
@@ -96,24 +111,19 @@ def format_products(products: list[dict], total_count: int) -> str:
 
     lines = [
         "✅ Найнижча ціна серед знайденого:\n",
-        f"🛒 {cheapest_product['name']}\n"
-        f"🏪 {cheapest_product['store']}\n"
-        f"💰 {cheapest_product['price']} Kč\n"
-        f"📅 Дійсно до: {cheapest_product['valid_to']}"
-        f"🌐 <a href=\"{cheapest_product['url']}\">Сайт</a>"
+        format_product(cheapest_product),
     ]
 
     if other_products:
         lines.append("\nІнші знайдені товари:\n")
 
         for product in other_products:
-            lines.append(
-                f"🛒 {product['name']}\n"
-                f"🏪 {product['store']}\n"
-                f"💰 {product['price']} Kč\n"
-                f"📅 Дійсно до: {product['valid_to']}"
-                f"🌐 <a href=\"{product['url']}\">Сайт</a>"
-            )
+            lines.append(format_product(product))
+
     if total_count > len(products):
-        lines.append(f"\nПоказано {len(products)} найдешевших результатів із {total_count} знайдених.")
+        lines.append(
+            f"\nПоказано {len(products)} найдешевших результатів "
+            f"із {total_count} знайдених."
+        )
+
     return "\n\n".join(lines)
