@@ -5,7 +5,16 @@ import json
 from pathlib import Path
 
 
-URL = "https://www.akcniletak.cz/nejlepe-hodnocene-nabidky"
+BASE_URL = "https://www.akcniletak.cz"
+OFFERS_PATH = "/nejlepe-hodnocene-nabidky"
+MAX_PAGES = 3
+
+
+def build_offers_page_url(page_number: int) -> str:
+    return (
+        f"{BASE_URL}{OFFERS_PATH}"
+        f"?sort=votes_last_seven_days&page={page_number}"
+    )
 
 
 def fetch_page_with_browser(url: str) -> str | None:
@@ -26,11 +35,11 @@ def fetch_page_with_browser(url: str) -> str | None:
 
             html = page.content()
 
-            print(f"Page title: {page.title()}")
-            print(f"Final URL: {page.url}")
-            print(f"HTML length: {len(html)}")
-            print("First 500 characters:")
-            print(html[:500])
+            # print(f"Page title: {page.title()}")
+            # print(f"Final URL: {page.url}")
+            # print(f"HTML length: {len(html)}")
+            # print("First 500 characters:")
+            # print(html[:500])
 
             browser.close()
 
@@ -43,6 +52,35 @@ def fetch_page_with_browser(url: str) -> str | None:
     except Exception as error:
         print(f"Browser fetch failed: {error}")
         return None
+
+
+def print_pagination_links(html: str) -> None:
+    soup = BeautifulSoup(html, "html.parser")
+
+    links = []
+
+    for link in soup.select("a[href]"):
+        href = link.get("href", "")
+        text = link.get_text(" ", strip=True)
+
+        href_lower = href.lower()
+        text_lower = text.lower()
+
+        if (
+            "page" in href_lower
+            or "strana" in href_lower
+            or "další" in text_lower
+            or "next" in text_lower
+            or "více" in text_lower
+        ):
+            links.append((text, href))
+
+    print(f"\nPagination-like links found: {len(links)}")
+
+    for text, href in links[:50]:
+        print("-" * 80)
+        print(f"Text: {text}")
+        print(f"Href: {href}")
 
 
 def extract_products(html: str) -> list[dict]:
@@ -78,30 +116,30 @@ def save_products_to_json(products: list[dict], file_path: str) -> None:
 
 
 def main() -> None:
-    html = fetch_page_with_browser(URL)
+    all_products = []
 
-    if html is None:
-        print("No HTML received.")
-        return
+    for page_number in range(1, MAX_PAGES + 1):
+        url = build_offers_page_url(page_number)
+        print(f"\nParsing page {page_number}: {url}")
 
-    debug_file = Path("data/debug_page.html")
-    debug_file.write_text(html, encoding="utf-8")
-    print(f"Saved HTML to {debug_file}")
+        html = fetch_page_with_browser(url)
 
-    products = extract_products(html)
+        if html is None:
+            print(f"No HTML received for page {page_number}.")
+            continue
 
-    print(f"Extracted products: {len(products)}")
+        products = extract_products(html)
+        print(f"Extracted products from page {page_number}: {len(products)}")
 
-    for product in products[:10]:
-        print(product)
+        all_products.extend(products)
 
-    save_products_to_json(products, "data/parsed_products.json")
-    print("Saved products to data/parsed_products.json")
+    print(f"\nTotal extracted products: {len(all_products)}")
 
-    if "awsWaf" in html or "challenge" in html.lower():
-        print("AWS WAF challenge is still present.")
-    else:
-        print("Looks like normal HTML.")
+    # for product in all_products[:10]:
+    #     print(product)
+
+    save_products_to_json(all_products, "data/parsed_products.json")
+    # print("Saved products to data/parsed_products.json")
 
 
 if __name__ == "__main__":
