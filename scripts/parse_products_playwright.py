@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import time
 from urllib.parse import urljoin
+import os
 from pathlib import Path
 
 
@@ -10,6 +11,11 @@ BASE_URL = "https://www.akcniletak.cz"
 OFFERS_PATH = "/nejlepe-hodnocene-nabidky"
 MAX_PAGES = 3
 DELAY_BETWEEN_PAGES_SECONDS = 2
+
+PRODUCTS_FILE = os.getenv(
+    "PRODUCTS_FILE",
+    "data/products.json",
+)
 
 
 def build_offers_page_url(page_number: int) -> str:
@@ -216,7 +222,7 @@ def main() -> None:
     if all_products and not parsing_failed:
         save_products_to_json(
             all_products,
-            "data/products.json",
+            PRODUCTS_FILE,
         )
         print("Saved products to data/products.json")
     else:

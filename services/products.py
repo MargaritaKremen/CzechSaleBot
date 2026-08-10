@@ -1,10 +1,15 @@
 import json
 from pathlib import Path
+import os
+
 
 from utils.normalize import normalize_text
 
 # PRODUCTS_FILE = Path("data/products.json")
-PRODUCTS_FILE = Path("/app/storage/products.json")
+# PRODUCTS_FILE = Path("/app/storage/products.json")
+PRODUCTS_FILE = Path(
+    os.getenv("PRODUCTS_FILE", "data/products.json")
+)
 
 SAMPLE_PRODUCTS_FILE = Path("data/sample_products.json")
 MAX_RESULTS = 5
