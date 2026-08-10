@@ -3,7 +3,9 @@ from pathlib import Path
 
 from utils.normalize import normalize_text
 
-PRODUCTS_FILE = Path("data/products.json")
+# PRODUCTS_FILE = Path("data/products.json")
+PRODUCTS_FILE = Path("/app/storage/products.json")
+
 SAMPLE_PRODUCTS_FILE = Path("data/sample_products.json")
 MAX_RESULTS = 5
 
