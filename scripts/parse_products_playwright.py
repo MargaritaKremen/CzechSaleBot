@@ -19,33 +19,20 @@ def build_offers_page_url(page_number: int) -> str:
     )
 
 
-def fetch_page_with_browser(url: str) -> str | None:
+def fetch_page_with_browser(page, url: str) -> str | None:
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            page = browser.new_page(
-                locale="cs-CZ",
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/120.0.0.0 Safari/537.36"
-                ),
-            )
+        page.goto(
+            url,
+            wait_until="domcontentloaded",
+            timeout=60000,
+        )
 
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_timeout(10000)
+        page.wait_for_selector(
+            "a.js-offer-link-item",
+            timeout=60000,
+        )
 
-            html = page.content()
-
-            # print(f"Page title: {page.title()}")
-            # print(f"Final URL: {page.url}")
-            # print(f"HTML length: {len(html)}")
-            # print("First 500 characters:")
-            # print(html[:500])
-
-            browser.close()
-
-            return html
+        return page.content()
 
     except PlaywrightTimeoutError:
         print("Page loading timed out.")
@@ -54,7 +41,6 @@ def fetch_page_with_browser(url: str) -> str | None:
     except Exception as error:
         print(f"Browser fetch failed: {error}")
         return None
-
 
 def print_pagination_links(html: str) -> None:
     soup = BeautifulSoup(html, "html.parser")
@@ -123,34 +109,121 @@ def save_products_to_json(products: list[dict], file_path: str) -> None:
         json.dump(products, file, ensure_ascii=False, indent=2)
 
 
-def main() -> None:
-    all_products = []
+def get_total_pages(html: str) -> int:
+    soup = BeautifulSoup(html, "html.parser")
 
-    for page_number in range(1, MAX_PAGES + 1):
-        url = build_offers_page_url(page_number)
-        print(f"\nParsing page {page_number}: {url}")
+    page_links = soup.select(".paginator__list a.btn--paginator-page")
 
-        html = fetch_page_with_browser(url)
+    page_numbers = []
 
-        if html is None:
-            print(f"No HTML received for page {page_number}.")
+    for link in page_links:
+        href = link.get("href", "")
+
+        if "page=" not in href:
             continue
 
-        products = extract_products(html)
-        print(f"Extracted products from page {page_number}: {len(products)}")
+        try:
+            page_number = int(href.split("page=")[-1].split("&")[0])
+            page_numbers.append(page_number)
+        except ValueError:
+            continue
 
-        all_products.extend(products)
+    return max(page_numbers) if page_numbers else 1
 
-        if page_number < MAX_PAGES:
-            time.sleep(DELAY_BETWEEN_PAGES_SECONDS)
+
+def main() -> None:
+    all_products = []
+    parsing_failed = False
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+
+        page = browser.new_page(
+            locale="cs-CZ",
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
+        )
+
+        # Перша сторінка
+        first_url = build_offers_page_url(1)
+        print(f"\nParsing page 1: {first_url}")
+
+        first_html = fetch_page_with_browser(page, first_url)
+
+        if first_html is None:
+            print("Could not load first page.")
+            browser.close()
+            return
+
+        # Визначаємо реальну кількість сторінок
+        total_pages = get_total_pages(first_html)
+        print(f"Total pages found: {total_pages}")
+
+        # Поки що для тесту беремо максимум 3 сторінки
+        pages_to_parse = min(total_pages, 30)
+        print(f"Pages to parse: {pages_to_parse}")
+
+        # Товари з першої сторінки
+        first_products = extract_products(first_html)
+
+        print(
+            f"Extracted products from page 1: "
+            f"{len(first_products)}"
+        )
+
+        if not first_products:
+            print("No products extracted from page 1.")
+            parsing_failed = True
+        else:
+            all_products.extend(first_products)
+
+        # Решта сторінок
+        for page_number in range(2, pages_to_parse + 1):
+            url = build_offers_page_url(page_number)
+            print(f"\nParsing page {page_number}: {url}")
+
+            html = fetch_page_with_browser(page, url)
+
+            if html is None:
+                print(f"No HTML received for page {page_number}.")
+                parsing_failed = True
+                continue
+
+            products = extract_products(html)
+
+            print(
+                f"Extracted products from page {page_number}: "
+                f"{len(products)}"
+            )
+
+            if not products:
+                print(f"No products extracted from page {page_number}.")
+                parsing_failed = True
+                continue
+
+            all_products.extend(products)
+
+            if page_number < pages_to_parse:
+                time.sleep(DELAY_BETWEEN_PAGES_SECONDS)
+
+        browser.close()
 
     print(f"\nTotal extracted products: {len(all_products)}")
 
-    # for product in all_products[:10]:
-    #     print(product)
-
-    save_products_to_json(all_products, "data/products.json")
-    # print("Saved products to data/products.json")
+    if all_products and not parsing_failed:
+        save_products_to_json(
+            all_products,
+            "data/products.json",
+        )
+        print("Saved products to data/products.json")
+    else:
+        print(
+            "Parsing incomplete. "
+            "Existing products.json was not changed."
+        )
 
 
 if __name__ == "__main__":
