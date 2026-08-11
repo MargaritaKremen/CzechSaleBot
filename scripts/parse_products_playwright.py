@@ -224,7 +224,7 @@ def main() -> None:
             all_products,
             PRODUCTS_FILE,
         )
-        print("Saved products to data/products.json")
+        print(f"Saved products to {PRODUCTS_FILE}")
     else:
         print(
             "Parsing incomplete. "
