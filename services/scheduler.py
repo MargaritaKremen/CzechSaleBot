@@ -24,11 +24,11 @@ async def run_parser_daily():
 
         wait_seconds = (next_run - now).total_seconds()
 
-        print(f"Next products update: {next_run}")
+        print(f"Next products update: {next_run}", flush=True)
 
         await asyncio.sleep(wait_seconds)
 
-        print("Starting daily products parser...")
+        print("Starting daily products parser...", flush=True)
 
         result = await asyncio.to_thread(
             subprocess.run,
@@ -37,9 +37,10 @@ async def run_parser_daily():
         )
 
         if result.returncode == 0:
-            print("Products parser finished successfully.")
+            print("Products parser finished successfully.", flush=True)
         else:
             print(
                 f"Products parser failed with exit code "
-                f"{result.returncode}"
+                f"{result.returncode}",
+                flush=True,
             )
